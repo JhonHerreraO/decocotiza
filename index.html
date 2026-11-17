@@ -1,0 +1,1483 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DecoCotiza - Sistema de Cotización, Costeo e Inventario</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Inter:wght@400;500;600;700;800&family=Playfair+Display:ital,wght@0,600;0,700;1,600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: #FAF5FB;
+      color: #2B1442;
+    }
+    .font-script {
+      font-family: 'Great Vibes', cursive;
+    }
+    .font-serif-title {
+      font-family: 'Playfair Display', serif;
+    }
+    /* Banner Oficial DecoCotiza replicado fielmente en alta resolución vectorial */
+    .decocotiza-banner {
+      background: linear-gradient(135deg, #F4ECF7 0%, #FAF5FB 48%, #EFE2F5 100%);
+      position: relative;
+      overflow: hidden;
+      border-bottom: 2px solid #D8B4FE;
+    }
+    .decocotiza-banner::before {
+      content: "";
+      position: absolute;
+      top: -40px;
+      left: 28%;
+      width: 48%;
+      height: 110px;
+      background: radial-gradient(ellipse at center, rgba(125, 60, 152, 0.22) 0%, rgba(125, 60, 152, 0) 70%);
+      border-radius: 50%;
+      pointer-events: none;
+    }
+    .btn-primary-deco {
+      background: linear-gradient(135deg, #4A154B 0%, #7D3C98 100%);
+      color: #FFFFFF;
+      transition: all 0.2s ease;
+    }
+    .btn-primary-deco:hover {
+      background: linear-gradient(135deg, #3B1448 0%, #6C3483 100%);
+      transform: translateY(-1px);
+      box-shadow: 0 6px 16px rgba(74, 21, 75, 0.28);
+    }
+    .card-deco {
+      background: #FFFFFF;
+      border: 1px solid #E9D5FF;
+      border-radius: 1rem;
+      box-shadow: 0 4px 18px rgba(74, 21, 75, 0.06);
+    }
+    .tab-active {
+      background-color: #4A154B;
+      color: #FFFFFF;
+      box-shadow: 0 4px 12px rgba(74, 21, 75, 0.25);
+    }
+    .tab-inactive {
+      background-color: #FFFFFF;
+      color: #4A154B;
+      border: 1px solid #D8B4FE;
+    }
+    .tab-inactive:hover {
+      background-color: #F4ECF7;
+    }
+    /* Animación suave entre pantallas */
+    .fade-in {
+      animation: fadeIn 0.25s ease-out;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+  <!-- BARRA SUPERIOR DE CONTROL RBAC & SUSTAINING DEMO (RF01 / ACTIVIDAD 3) -->
+  <div class="bg-[#3B1448] text-white px-4 py-2.5 shadow-md sticky top-0 z-40 border-b border-purple-800">
+    <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-3">
+      <div class="flex items-center gap-2.5">
+        <span class="bg-purple-800/80 text-purple-100 text-xs font-bold px-2.5 py-1 rounded-full border border-purple-500/40">
+          <i class="fa-solid fa-shield-halved mr-1 text-purple-300"></i> RBAC Activo (RF01)
+        </span>
+        <span class="text-xs sm:text-sm text-purple-100 hidden md:inline">
+          Perfil en sesión: <strong id="current-role-label" class="text-white">Administradora (Elisabeth)</strong>
+        </span>
+      </div>
+
+      <!-- Selector rápido de Roles para demostración en vivo -->
+      <div class="flex flex-wrap items-center gap-1.5 sm:gap-2">
+        <button onclick="switchRole('admin')" id="role-btn-admin" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-[#7D3C98] text-white border border-purple-300 shadow-sm cursor-pointer transition">
+          <i class="fa-solid fa-user-tie mr-1"></i> Administradora
+        </button>
+        <button onclick="switchRole('auxiliar')" id="role-btn-auxiliar" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-purple-950/70 text-purple-200 hover:bg-purple-800 border border-purple-700 cursor-pointer transition">
+          <i class="fa-solid fa-mobile-screen-button mr-1"></i> Auxiliar Montaje
+        </button>
+        <button onclick="switchRole('cliente')" id="role-btn-cliente" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-purple-950/70 text-purple-200 hover:bg-purple-800 border border-purple-700 cursor-pointer transition">
+          <i class="fa-solid fa-eye mr-1"></i> Cliente Final
+        </button>
+        <span class="text-purple-600 hidden sm:inline">|</span>
+        <button onclick="openValidationModal()" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-emerald-600 hover:bg-emerald-500 text-white shadow-sm cursor-pointer transition">
+          <i class="fa-solid fa-clipboard-check mr-1"></i> Validación Act. 3 & RBAC
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- BANNER CORPORATIVO OFICIAL DECOCOTIZA (IDÉNTICO A LA PRESENTACIÓN ETAPA 2) -->
+  <header id="main-brand-header" class="decocotiza-banner shadow-sm">
+    <div class="max-w-7xl mx-auto px-4 sm:px-8 pt-3 pb-2 relative">
+      <!-- Decoración SVG Izquierda: Globos morados/lila y rosas -->
+      <svg class="hidden sm:block absolute left-2 top-1 w-28 h-28 pointer-events-none opacity-95" viewBox="0 0 140 140" fill="none">
+        <ellipse cx="48" cy="34" rx="16" ry="20" fill="#5B1D76"/>
+        <ellipse cx="43" cy="28" rx="4" ry="7" fill="#A569BD" opacity="0.6"/>
+        <ellipse cx="28" cy="46" rx="14" ry="18" fill="#8E44AD"/>
+        <ellipse cx="24" cy="41" rx="3.5" ry="6" fill="#D2B4DE" opacity="0.7"/>
+        <ellipse cx="18" cy="70" rx="13" ry="16" fill="#C39BD3"/>
+        <path d="M48 54 Q45 78 40 96 M28 64 Q32 82 38 96 M18 86 Q28 92 38 96" stroke="#6C3483" stroke-width="1.4"/>
+        <!-- Rosas decorativas -->
+        <circle cx="34" cy="106" r="14" fill="#F5EEF8" stroke="#D2B4DE" stroke-width="1.5"/>
+        <circle cx="34" cy="106" r="8" fill="#EBDEF0"/>
+        <circle cx="56" cy="112" r="13" fill="#A569BD"/>
+        <circle cx="56" cy="112" r="7" fill="#7D3C98"/>
+        <path d="M16 114 Q8 104 20 98 Q24 108 16 114 Z" fill="#6C3483"/>
+        <path d="M72 116 Q84 106 72 100 Q66 108 72 116 Z" fill="#5B1D76"/>
+      </svg>
+
+      <!-- Decoración SVG Derecha: Rosas lavanda y hojas -->
+      <svg class="hidden sm:block absolute right-2 top-1 w-28 h-28 pointer-events-none opacity-95" viewBox="0 0 140 140" fill="none">
+        <path d="M72 28 Q58 18 52 30 Q64 36 72 28 Z" fill="#6C3483"/>
+        <circle cx="88" cy="34" r="13" fill="#F5EEF8" stroke="#D2B4DE" stroke-width="1.5"/>
+        <circle cx="88" cy="34" r="7" fill="#E8DAEF"/>
+        <circle cx="112" cy="44" r="18" fill="#A569BD"/>
+        <circle cx="112" cy="44" r="11" fill="#8E44AD"/>
+        <circle cx="112" cy="44" r="5" fill="#5B1D76"/>
+        <circle cx="122" cy="70" r="13" fill="#6C3483"/>
+        <path d="M104 78 Q94 94 106 98 Q112 88 104 78 Z" fill="#7D3C98"/>
+        <path d="M124 88 Q120 106 130 106 Q134 94 124 88 Z" fill="#5B1D76"/>
+      </svg>
+
+      <!-- Contenido Central del Banner Oficial -->
+      <div class="flex flex-col md:flex-row items-center justify-center gap-4 md:gap-8 relative z-10 py-1">
+        <!-- Bloque Logo + Slogan -->
+        <div class="text-center relative px-4">
+          <!-- Arco decorativo superior -->
+          <div class="w-40 h-6 border-t-2 border-purple-400/70 rounded-t-full mx-auto -mb-3"></div>
+          <h1 class="font-script text-5xl sm:text-6xl text-[#4A154B] tracking-wide drop-shadow-sm select-none">
+            DecoCotiza
+          </h1>
+          <div class="flex items-center justify-center gap-2 -mt-1">
+            <p class="font-serif-title italic text-sm sm:text-base text-[#5B1D76] font-semibold">
+              Creamos momentos inolvidables ♡
+            </p>
+          </div>
+          <div class="w-44 h-0.5 bg-gradient-to-r from-transparent via-[#7D3C98] to-transparent mx-auto mt-1"></div>
+        </div>
+
+        <!-- Separador Vertical -->
+        <div class="hidden md:block w-px h-20 bg-[#7D3C98]/40"></div>
+
+        <!-- Datos de Contacto Oficiales (Etapa 2) -->
+        <div class="flex flex-wrap md:flex-col justify-center gap-x-5 gap-y-1.5 text-xs sm:text-sm font-semibold text-[#3B1448]">
+          <div class="flex items-center gap-2">
+            <span class="w-6 h-6 rounded-full bg-[#4A154B] text-white flex items-center justify-center text-xs">
+              <i class="fa-brands fa-whatsapp"></i>
+            </span>
+            <span>300 123 4567</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="w-6 h-6 rounded-full bg-[#4A154B] text-white flex items-center justify-center text-xs">
+              <i class="fa-brands fa-instagram"></i>
+            </span>
+            <span>@DecoCotiza</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="w-6 h-6 rounded-full bg-[#4A154B] text-white flex items-center justify-center text-xs">
+              <i class="fa-solid fa-location-dot"></i>
+            </span>
+            <span>San Juan de Urabá, Antioquia</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Cintillo Inferior Oficial -->
+      <div class="flex items-center justify-center gap-3 pt-1.5 pb-1 border-t border-purple-200/80 mt-1">
+        <span class="h-px w-12 sm:w-24 bg-[#7D3C98]/50"></span>
+        <span class="text-[11px] sm:text-xs font-extrabold tracking-[0.28em] text-[#4A154B] uppercase">
+          ✦ DECORACIÓN DE EVENTOS ✦
+        </span>
+        <span class="h-px w-12 sm:w-24 bg-[#7D3C98]/50"></span>
+      </div>
+    </div>
+  </header>
+
+  <!-- NAVEGACIÓN PRINCIPAL DE PANTALLAS (MOCKUPS W01 A W06) -->
+  <nav id="main-nav-bar" class="bg-white border-b border-purple-200 shadow-xs">
+    <div class="max-w-7xl mx-auto px-4 sm:px-8 py-3 flex flex-wrap items-center justify-between gap-3">
+      <div class="flex flex-wrap items-center gap-2">
+        <button onclick="navigate('w01')" id="nav-w01" class="tab-inactive px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold cursor-pointer transition flex items-center gap-1.5">
+          <i class="fa-solid fa-lock"></i> W01: Acceso
+        </button>
+        <button onclick="navigate('w02')" id="nav-w02" class="tab-active px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold cursor-pointer transition flex items-center gap-1.5">
+          <i class="fa-solid fa-boxes-stacked"></i> W02: Catálogo
+        </button>
+        <button onclick="navigate('w03')" id="nav-w03" class="tab-inactive admin-only px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold cursor-pointer transition flex items-center gap-1.5">
+          <i class="fa-solid fa-calculator"></i> W03: Motor Costeo
+        </button>
+        <button onclick="navigate('w04')" id="nav-w04" class="tab-inactive admin-only px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold cursor-pointer transition flex items-center gap-1.5">
+          <i class="fa-solid fa-file-invoice-dollar"></i> W04: Cotizador ($283k)
+        </button>
+        <button onclick="navigate('w05')" id="nav-w05" class="tab-inactive staff-only px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold cursor-pointer transition flex items-center gap-1.5">
+          <i class="fa-solid fa-calendar-check"></i> W05/W06: Reservas & Mobile
+        </button>
+      </div>
+
+      <!-- Acciones Rápidas de Demostración -->
+      <div class="flex items-center gap-2">
+        <button onclick="loadRealCaseDemo()" class="admin-only bg-purple-100 hover:bg-purple-200 text-[#4A154B] border border-purple-300 px-3 py-1.5 rounded-xl text-xs font-bold cursor-pointer transition">
+          <i class="fa-solid fa-bolt text-amber-500 mr-1"></i> Caso Real ($283.000)
+        </button>
+        <button onclick="openNewItemModal()" class="admin-only btn-primary-deco px-3.5 py-1.5 rounded-xl text-xs font-bold cursor-pointer">
+          + Registrar Insumo
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- CONTENEDOR DE NOTIFICACIONES (TOAST SIN ALERT()) -->
+  <div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2 max-w-sm"></div>
+
+  <!-- CONTENIDO DINÁMICO DE PANTALLAS -->
+  <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-8 py-6">
+
+    <!-- ===================================================================== -->
+    <!-- PANTALLA W01: ACCESO AL SISTEMA Y CONTROL DE ROLES (MOCKUP 1 - RF01)  -->
+    <!-- ===================================================================== -->
+    <section id="view-w01" class="hidden fade-in">
+      <div class="max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-12 gap-6 items-center">
+        <!-- Columna Izquierda: Tarjeta Login fiel a Mockup 1 -->
+        <div class="md:col-span-7 card-deco overflow-hidden">
+          <div class="decocotiza-banner p-4 text-center">
+            <h2 class="font-script text-4xl text-[#4A154B]">DecoCotiza</h2>
+            <p class="font-serif-title italic text-xs text-[#5B1D76]">Creamos momentos inolvidables ♡</p>
+            <p class="text-[10px] font-bold tracking-widest text-[#4A154B] mt-1">✦ DECORACIÓN DE EVENTOS ✦</p>
+          </div>
+
+          <div class="p-6 sm:p-8">
+            <div class="text-center mb-5">
+              <span class="bg-purple-100 text-[#4A154B] text-xs font-bold px-3 py-1 rounded-full">MOCKUP 1 (RF01)</span>
+              <h3 class="font-serif-title text-2xl font-bold text-[#2B1442] mt-2">Ingreso a Plataforma</h3>
+              <p class="text-xs text-purple-800">Gestión de Eventos, Costeo e Inventario</p>
+            </div>
+
+            <form onsubmit="handleLoginSubmit(event)" class="space-y-4">
+              <div>
+                <label class="block text-xs font-bold text-[#4A154B] mb-1">Correo Electrónico</label>
+                <div class="relative">
+                  <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-purple-600">
+                    <i class="fa-solid fa-envelope"></i>
+                  </span>
+                  <input type="email" id="login-email" value="elisabeth@decocotiza.com" required
+                    class="w-full pl-9 pr-3 py-2.5 bg-[#FAF5FB] border border-purple-300 rounded-xl text-sm font-medium focus:outline-none focus:border-[#4A154B]">
+                </div>
+              </div>
+
+              <div>
+                <label class="block text-xs font-bold text-[#4A154B] mb-1">Contraseña (Cifrado bcrypt)</label>
+                <div class="relative">
+                  <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-purple-600">
+                    <i class="fa-solid fa-key"></i>
+                  </span>
+                  <input type="password" id="login-pass" value="DecoCotiza2026*" required
+                    class="w-full pl-9 pr-3 py-2.5 bg-[#FAF5FB] border border-purple-300 rounded-xl text-sm font-medium focus:outline-none focus:border-[#4A154B]">
+                </div>
+              </div>
+
+              <button type="submit" class="w-full btn-primary-deco py-3 rounded-xl font-bold text-sm shadow-md cursor-pointer">
+                <i class="fa-solid fa-right-to-bracket mr-1.5"></i> Iniciar Sesión
+              </button>
+            </form>
+
+            <div class="mt-5 pt-4 border-t border-purple-100">
+              <p class="text-[11px] font-bold text-center text-purple-800 mb-2.5">Acceso Directo por Perfil de Prueba:</p>
+              <div class="grid grid-cols-3 gap-2">
+                <button onclick="quickLogin('admin')" class="p-2 rounded-lg bg-purple-50 hover:bg-purple-100 border border-purple-200 text-center cursor-pointer transition">
+                  <i class="fa-solid fa-user-tie text-[#4A154B] block mb-1"></i>
+                  <span class="text-[11px] font-bold text-[#2B1442] block">Administradora</span>
+                </button>
+                <button onclick="quickLogin('auxiliar')" class="p-2 rounded-lg bg-purple-50 hover:bg-purple-100 border border-purple-200 text-center cursor-pointer transition">
+                  <i class="fa-solid fa-mobile-screen text-[#7D3C98] block mb-1"></i>
+                  <span class="text-[11px] font-bold text-[#2B1442] block">Auxiliar Campo</span>
+                </button>
+                <button onclick="quickLogin('cliente')" class="p-2 rounded-lg bg-purple-50 hover:bg-purple-100 border border-purple-200 text-center cursor-pointer transition">
+                  <i class="fa-solid fa-users text-emerald-700 block mb-1"></i>
+                  <span class="text-[11px] font-bold text-[#2B1442] block">Cliente Final</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Columna Derecha: Seguridad Garantizada RNF01 -->
+        <div class="md:col-span-5 space-y-4">
+          <div class="card-deco p-5">
+            <span class="text-xs font-extrabold text-[#7D3C98] uppercase tracking-wider">Seguridad Garantizada (RNF01)</span>
+            <h4 class="font-serif-title text-xl font-bold text-[#2B1442] mt-1 mb-3">Control de Acceso Basado en Roles (RBAC)</h4>
+            <ul class="space-y-3 text-xs text-gray-700">
+              <li class="flex items-start gap-2.5 bg-[#FAF5FB] p-3 rounded-xl border border-purple-100">
+                <i class="fa-solid fa-circle-check text-[#1E8449] mt-0.5 text-sm"></i>
+                <div>
+                  <strong class="text-[#4A154B] block">Elisabeth Martínez (Administradora)</strong>
+                  Acceso total al catálogo, costos de compra, motor de precio piso, cotizador y aprobación de reservas.
+                </div>
+              </li>
+              <li class="flex items-start gap-2.5 bg-[#FAF5FB] p-3 rounded-xl border border-purple-100">
+                <i class="fa-solid fa-circle-check text-[#7D3C98] mt-0.5 text-sm"></i>
+                <div>
+                  <strong class="text-[#4A154B] block">Auxiliar de Montaje (Móvil)</strong>
+                  Acceso restringido sin visualización de costos internos. Consulta órdenes asignadas y checklist táctil.
+                </div>
+              </li>
+              <li class="flex items-start gap-2.5 bg-[#FAF5FB] p-3 rounded-xl border border-purple-100">
+                <i class="fa-solid fa-circle-check text-purple-600 mt-0.5 text-sm"></i>
+                <div>
+                  <strong class="text-[#4A154B] block">Cliente Final (Vista Pública)</strong>
+                  Consulta el catálogo visual de decoración y verifica disponibilidad por fecha sin ver márgenes.
+                </div>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================================================================== -->
+    <!-- PANTALLA W02: CATÁLOGO DE MATERIALES DE ELISABETH (MOCKUP 2 - RF02)   -->
+    <!-- ===================================================================== -->
+    <section id="view-w02" class="fade-in">
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+        <div>
+          <span class="text-xs font-extrabold text-[#7D3C98] uppercase tracking-wider">MOCKUP 2 (RF02) • CATÁLOGO DE MATERIALES DE ELISABETH</span>
+          <h2 class="font-serif-title text-2xl sm:text-3xl font-bold text-[#2B1442]">Gestión de Catálogo e Inventario de Productos</h2>
+        </div>
+
+        <!-- Filtro de Verificación de Stock por Fecha (RF07) -->
+        <div class="card-deco px-4 py-2.5 flex flex-wrap items-center gap-3">
+          <div class="flex items-center gap-2">
+            <i class="fa-solid fa-calendar-day text-[#4A154B]"></i>
+            <label for="catalog-date-filter" class="text-xs font-bold text-[#4A154B]">Verificar Stock Fecha:</label>
+          </div>
+          <input type="date" id="catalog-date-filter" value="2026-11-15" onchange="renderCatalog()"
+            class="border border-purple-300 rounded-lg px-2.5 py-1 text-xs font-semibold text-[#2B1442] bg-[#FAF5FB]">
+          <span id="date-status-badge" class="text-[11px] font-bold px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800">
+            ✔ Fechas verificadas
+          </span>
+        </div>
+      </div>
+
+      <!-- Tarjeta Especial PROMO: Paquete Completo Decoración ($160.000) -->
+      <div class="card-deco mb-6 overflow-hidden border-2 border-[#7D3C98] bg-gradient-to-r from-[#F4ECF7] via-white to-[#F4ECF7]">
+        <div class="p-5 sm:p-6 flex flex-col lg:flex-row items-center justify-between gap-5">
+          <div class="flex items-start gap-4">
+            <div class="w-14 h-14 rounded-2xl bg-[#4A154B] text-white flex flex-col items-center justify-center shrink-0 shadow-md">
+              <span class="text-[10px] font-extrabold tracking-wider">PROMO</span>
+              <i class="fa-solid fa-wand-magic-sparkles text-lg mt-0.5"></i>
+            </div>
+            <div>
+              <div class="flex flex-wrap items-center gap-2">
+                <span class="bg-[#4A154B] text-white text-[11px] font-bold px-2.5 py-0.5 rounded-full">PAQUETE ESTRELLA</span>
+                <span class="text-xs font-bold text-[#7D3C98]">Incluye todos los materiales del catálogo</span>
+              </div>
+              <h3 class="font-serif-title text-xl sm:text-2xl font-bold text-[#2B1442] mt-1">
+                Paquete Completo Decoración
+              </h3>
+              <p class="text-xs sm:text-sm text-gray-700 mt-0.5">
+                Arco Metálico + Cortinas Blancas + Telas Lila + Pedestales + Alfombra Felpa + Flores + Luces LED. <em class="text-purple-800 font-medium">(No incluye flete ni mano de obra)</em>.
+              </p>
+            </div>
+          </div>
+
+          <div class="flex flex-wrap items-center gap-4 shrink-0">
+            <div class="text-right">
+              <span class="text-xs font-bold text-purple-800 block">Tarifa Especial:</span>
+              <span class="text-3xl font-extrabold text-[#4A154B]">$160.000</span>
+            </div>
+            <button onclick="loadFullPackageQuote()" class="admin-only btn-primary-deco px-5 py-3 rounded-xl text-xs sm:text-sm font-bold cursor-pointer shadow-md">
+              <i class="fa-solid fa-cart-plus mr-1.5"></i> Cotizar Paquete Completo
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Rejilla de Insumos del Catálogo Real -->
+      <div id="catalog-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <!-- Renderizado dinámicamente por JS -->
+      </div>
+    </section>
+
+    <!-- ===================================================================== -->
+    <!-- PANTALLA W03: MOTOR DE COSTEO DETERMINISTA (MOCKUP 3 - RF03)          -->
+    <!-- ===================================================================== -->
+    <section id="view-w03" class="hidden fade-in">
+      <div class="mb-6">
+        <span class="text-xs font-extrabold text-[#7D3C98] uppercase tracking-wider">MOCKUP 3 (RF03 - FUNCIONALIDAD CRÍTICA)</span>
+        <h2 class="font-serif-title text-2xl sm:text-3xl font-bold text-[#2B1442]">Motor de Costeo Determinista & Amortización</h2>
+        <p class="text-xs sm:text-sm text-gray-600 mt-1">
+          Algoritmo financiero que garantiza la recuperación total del activo entre 8 y 12 alquileres, evitando cotizar a pérdida.
+        </p>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <!-- Formulario Paramétrico del Activo -->
+        <div class="lg:col-span-7 card-deco p-6">
+          <div class="flex flex-wrap items-center justify-between gap-2 pb-4 border-b border-purple-100 mb-5">
+            <div>
+              <span class="text-xs font-bold text-[#7D3C98]">Estructura de Costeo Activa:</span>
+              <h3 id="cost-item-title" class="text-lg font-extrabold text-[#4A154B]">ARC-01 • Arco Metálico Cuadrado</h3>
+            </div>
+            <select id="cost-item-selector" onchange="selectCostItem(this.value)"
+              class="border border-purple-300 rounded-xl px-3 py-2 text-xs font-bold text-[#2B1442] bg-[#FAF5FB]">
+              <!-- Opciones cargadas por JS -->
+            </select>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-xs font-bold text-[#4A154B] mb-1">Precio de Compra del Activo (COP)</label>
+              <input type="number" id="cost-purchase" value="280000" step="1000" oninput="recalculateCostEngine()"
+                class="w-full px-3.5 py-2.5 bg-[#FAF5FB] border border-purple-300 rounded-xl text-sm font-bold text-[#2B1442]">
+            </div>
+
+            <div>
+              <label class="block text-xs font-bold text-[#4A154B] mb-1">Usos Estimados (Meta: 8 a 12 eventos)</label>
+              <input type="number" id="cost-uses" value="10" min="1" max="50" oninput="recalculateCostEngine()"
+                class="w-full px-3.5 py-2.5 bg-[#FAF5FB] border border-purple-300 rounded-xl text-sm font-bold text-[#2B1442]">
+            </div>
+
+            <div>
+              <label class="block text-xs font-bold text-[#4A154B] mb-1">Mantenimiento / Limpieza por Evento (COP)</label>
+              <input type="number" id="cost-maint" value="2000" step="500" oninput="recalculateCostEngine()"
+                class="w-full px-3.5 py-2.5 bg-[#FAF5FB] border border-purple-300 rounded-xl text-sm font-bold text-[#2B1442]">
+            </div>
+
+            <div>
+              <label class="block text-xs font-bold text-[#4A154B] mb-1">Tarifa Pública Propuesta (COP)</label>
+              <input type="number" id="cost-proposed" value="45000" step="1000" oninput="recalculateCostEngine()"
+                class="w-full px-3.5 py-2.5 bg-white border-2 border-[#7D3C98] rounded-xl text-sm font-extrabold text-[#4A154B]">
+            </div>
+          </div>
+
+          <!-- Criterio Meta de Recuperación -->
+          <div class="mt-5 p-4 rounded-xl bg-[#FAF5FB] border border-purple-200 flex items-center justify-between">
+            <div>
+              <span class="text-xs font-bold text-[#4A154B] block">Criterio Meta de Recuperación:</span>
+              <span id="cost-recovery-text" class="text-xs text-gray-700">Recuperación total de $280.000 en 10 alquileres de la pieza.</span>
+            </div>
+            <span class="bg-purple-200 text-[#4A154B] text-xs font-extrabold px-3 py-1 rounded-full">
+              Fórmula: (Compra / Usos) + Mant.
+            </span>
+          </div>
+
+          <div class="mt-5 flex justify-end">
+            <button onclick="saveCostConfiguration()" class="btn-primary-deco px-5 py-2.5 rounded-xl text-xs sm:text-sm font-bold cursor-pointer">
+              <i class="fa-solid fa-floppy-disk mr-1.5"></i> Guardar Configuración de Precios
+            </button>
+          </div>
+        </div>
+
+        <!-- Panel Resultados Algorítmicos y Semáforo de Rentabilidad -->
+        <div class="lg:col-span-5 flex flex-col gap-4">
+          <div class="card-deco p-6 bg-gradient-to-br from-[#4A154B] to-[#3B1448] text-white">
+            <span class="text-xs font-bold uppercase tracking-wider text-purple-200">Resultado Motor Algorítmico</span>
+            <div class="mt-4 pb-4 border-b border-purple-700/70 flex items-baseline justify-between">
+              <span class="text-sm text-purple-100">Costo por Uso Calculado (Desgaste):</span>
+              <span id="calc-wear-cost" class="text-2xl font-extrabold text-amber-300">$28.000</span>
+            </div>
+            <div class="mt-4 flex items-baseline justify-between">
+              <div>
+                <span class="text-sm font-bold text-white block">Precio Mínimo Rentable (Piso):</span>
+                <span class="text-[11px] text-purple-200">Incluye desgaste + mantenimiento + margen base</span>
+              </div>
+              <span id="calc-floor-price" class="text-4xl font-extrabold text-white">$45.000</span>
+            </div>
+          </div>
+
+          <!-- Semáforo Dinámico de Protección de Margen (Mejora OB-01 Actividad 3) -->
+          <div id="rentability-alert-box" class="card-deco p-5 border-2 border-emerald-500 bg-emerald-50">
+            <div class="flex items-start gap-3">
+              <i id="rentability-icon" class="fa-solid fa-circle-check text-2xl text-emerald-600 mt-0.5"></i>
+              <div>
+                <h4 id="rentability-title" class="text-sm font-extrabold text-emerald-900">
+                  TARIFA RENTABLE Y SEGURA
+                </h4>
+                <p id="rentability-desc" class="text-xs text-emerald-800 mt-1">
+                  La tarifa propuesta ($45.000) cubre el desgaste por uso ($28.000) y genera un margen neto positivo de $15.000 por evento.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================================================================== -->
+    <!-- PANTALLA W04: COTIZADOR PARAMÉTRICO CASO REAL $283.000 (MOCKUP 4)     -->
+    <!-- ===================================================================== -->
+    <section id="view-w04" class="hidden fade-in">
+      <div class="flex flex-wrap items-center justify-between gap-3 mb-5">
+        <div>
+          <span class="text-xs font-extrabold text-[#7D3C98] uppercase tracking-wider">MOCKUP 4 (RF05 / RF07) • CASO DE ESTUDIO REAL DEL DOCUMENTO</span>
+          <h2 class="font-serif-title text-2xl sm:text-3xl font-bold text-[#2B1442]">Cotizador Paramétrico & Verificación de Stock por Fecha</h2>
+        </div>
+        <button onclick="loadRealCaseDemo()" class="bg-purple-100 hover:bg-purple-200 text-[#4A154B] border border-purple-300 px-3.5 py-2 rounded-xl text-xs font-bold cursor-pointer">
+          <i class="fa-solid fa-rotate-right mr-1"></i> Restaurar Caso Real ($283.000 COP)
+        </button>
+      </div>
+
+      <!-- Datos del Cliente y Parámetros Operativos (RF04) -->
+      <div class="card-deco p-5 mb-6">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div>
+            <label class="block text-xs font-bold text-[#4A154B] mb-1">Cliente</label>
+            <input type="text" id="quote-client" value="Juan Pérez" oninput="recalculateQuote()"
+              class="w-full px-3 py-2 bg-[#FAF5FB] border border-purple-300 rounded-xl text-sm font-semibold">
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-[#4A154B] mb-1">Fecha Evento</label>
+            <input type="date" id="quote-date" value="2026-11-15" onchange="recalculateQuote()"
+              class="w-full px-3 py-2 bg-[#FAF5FB] border border-purple-300 rounded-xl text-sm font-semibold">
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-[#4A154B] mb-1">Transporte por Zona (RF04)</label>
+            <select id="quote-zone" onchange="recalculateQuote()"
+              class="w-full px-3 py-2 bg-[#FAF5FB] border border-purple-300 rounded-xl text-sm font-semibold">
+              <option value="15000">Zona 1 (Casco Urbano: $15.000)</option>
+              <option value="30000" selected>Zona 2 (5-15 km: $30.000)</option>
+              <option value="45000">Zona 3 (15-30 km: $45.000)</option>
+              <option value="60000">Zona 4 (Veredas / Rural: $60.000)</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-[#4A154B] mb-1">Horas Cotizadas (Montaje/Desmontaje)</label>
+            <input type="number" id="quote-hours" value="3" min="1" max="12" oninput="recalculateQuote()"
+              class="w-full px-3 py-2 bg-[#FAF5FB] border border-purple-300 rounded-xl text-sm font-bold text-[#4A154B]">
+          </div>
+        </div>
+      </div>
+
+      <!-- Tabla de Insumos y Gastos Operativos -->
+      <div class="card-deco overflow-hidden mb-6">
+        <div class="bg-[#4A154B] text-white px-5 py-3 flex items-center justify-between">
+          <span class="text-xs sm:text-sm font-bold"><i class="fa-solid fa-list-check mr-2"></i>Desglose de Materiales y Servicios Operativos</span>
+          <span id="quote-promo-badge" class="hidden bg-amber-400 text-[#2B1442] text-xs font-extrabold px-2.5 py-0.5 rounded-full">
+            TARIFA PAQUETE COMPLETO ($160.000) APLICADA
+          </span>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse">
+            <thead>
+              <tr class="bg-[#F4ECF7] text-[#4A154B] text-xs uppercase border-b border-purple-200">
+                <th class="py-3 px-4 font-extrabold">Código / Insumo</th>
+                <th class="py-3 px-4 font-extrabold text-center">Cant.</th>
+                <th class="py-3 px-4 font-extrabold text-right">Precio Unit.</th>
+                <th class="py-3 px-4 font-extrabold text-center">Stock Disponible</th>
+                <th class="py-3 px-4 font-extrabold text-right">Subtotal</th>
+                <th class="py-3 px-4 font-extrabold text-center">Acción</th>
+              </tr>
+            </thead>
+            <tbody id="quote-items-tbody" class="divide-y divide-purple-100 text-sm">
+              <!-- Renderizado dinámicamente por JS -->
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Desglose de Servicios Operativos y Total General -->
+        <div class="bg-[#FAF5FB] p-5 border-t border-purple-200">
+          <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 items-center">
+            <div class="lg:col-span-8 space-y-1.5 text-xs sm:text-sm text-gray-700">
+              <p class="font-bold text-[#4A154B]">Desglose de Servicios Operativos (RF04):</p>
+              <div class="flex flex-wrap gap-x-4 gap-y-1">
+                <span>• Subtotal Materiales: <strong id="summary-materials" class="text-[#2B1442]">$129.000</strong></span>
+                <span>• Mano de Obra Elisabeth (<span id="lbl-hours-1">3</span>h x $20.000): <strong id="summary-elisabeth" class="text-[#2B1442]">$60.000</strong></span>
+                <span>• Ayudante (<span id="lbl-hours-2">3</span>h x $18.000): <strong id="summary-helper" class="text-[#2B1442]">$54.000</strong></span>
+                <span>• Flete Zona: <strong id="summary-freight" class="text-[#2B1442]">$30.000</strong></span>
+                <span>• Insumos Básicos (globos/cintas): <strong class="text-[#2B1442]">$10.000</strong></span>
+              </div>
+              <p class="text-xs text-purple-800 pt-1">
+                Total Gastos Administrativos y de Operación: <strong id="summary-operations">$154.000</strong>
+              </p>
+            </div>
+
+            <div class="lg:col-span-4 bg-[#4A154B] text-white p-4 rounded-2xl text-right shadow-md">
+              <span class="text-xs font-bold uppercase tracking-wider text-purple-200 block">TOTAL A COBRAR</span>
+              <span id="summary-grand-total" class="text-3xl font-extrabold text-white">$283.000</span>
+              <span class="text-[11px] text-purple-200 block mt-0.5">Anticipo 50% requerido: <strong id="summary-deposit">$141.500</strong></span>
+            </div>
+          </div>
+
+          <!-- Botones de Exportar PDF (RF06) y Convertir a Reserva (RF08) -->
+          <div class="mt-5 pt-4 border-t border-purple-200 flex flex-wrap items-center justify-end gap-3">
+            <button onclick="openPdfPreviewModal()" class="bg-white hover:bg-purple-50 text-[#4A154B] border-2 border-[#4A154B] px-5 py-2.5 rounded-xl text-xs sm:text-sm font-bold cursor-pointer transition">
+              <i class="fa-solid fa-file-pdf text-red-600 mr-1.5"></i> Exportar Cotización PDF (RF06)
+            </button>
+            <button onclick="proceedToReservation()" class="btn-primary-deco px-6 py-2.5 rounded-xl text-xs sm:text-sm font-bold cursor-pointer shadow-md">
+              <i class="fa-solid fa-check-double mr-1.5"></i> Convertir a Reserva (Anticipo 50%)
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================================================================== -->
+    <!-- PANTALLAS W05 Y W06: RESERVA 50% Y ORDEN MOBILE (MOCKUPS 5 Y 6)        -->
+    <!-- ===================================================================== -->
+    <section id="view-w05" class="hidden fade-in">
+      <div class="mb-5">
+        <span class="text-xs font-extrabold text-[#7D3C98] uppercase tracking-wider">MOCKUPS 5 Y 6 (RF08 / RF09 / RF10) • CIERRE OPERATIVO</span>
+        <h2 class="font-serif-title text-2xl sm:text-3xl font-bold text-[#2B1442]">Formalización de Reserva y Orden de Montaje Mobile</h2>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+        <!-- MOCKUP 5 (RF08/RF09): Confirmar Reserva #COT-1042 y Anticipo 50% -->
+        <div class="lg:col-span-6 card-deco p-6 admin-only" id="reservation-card-panel">
+          <div class="flex items-center justify-between pb-3 border-b border-purple-100 mb-4">
+            <div>
+              <span class="bg-purple-100 text-[#4A154B] text-[11px] font-bold px-2.5 py-0.5 rounded-full">MOCKUP 5 (RF08 / RF09)</span>
+              <h3 class="font-serif-title text-xl font-bold text-[#2B1442] mt-1">Confirmar Reserva #COT-1042</h3>
+            </div>
+            <span id="reservation-status-pill" class="px-3 py-1 rounded-full text-xs font-extrabold bg-amber-100 text-amber-800">
+              PENDIENTE ANTICIPO
+            </span>
+          </div>
+
+          <div class="space-y-3 text-sm mb-5">
+            <div class="flex justify-between p-3 rounded-xl bg-[#FAF5FB] border border-purple-100">
+              <span class="text-gray-600 font-medium">Cliente / Evento:</span>
+              <strong id="res-client-name" class="text-[#2B1442]">Juan Pérez • 15/11/2026</strong>
+            </div>
+            <div class="flex justify-between p-3 rounded-xl bg-[#FAF5FB] border border-purple-100">
+              <span class="text-gray-600 font-medium">Total Evento:</span>
+              <strong id="res-total-amount" class="text-lg font-extrabold text-[#4A154B]">$283.000</strong>
+            </div>
+            <div class="flex justify-between p-3 rounded-xl bg-purple-50 border border-purple-200">
+              <span class="text-[#4A154B] font-bold">Anticipo Mínimo (50%):</span>
+              <strong id="res-min-deposit" class="text-lg font-extrabold text-[#7D3C98]">$141.500</strong>
+            </div>
+          </div>
+
+          <div class="mb-5">
+            <label class="block text-xs font-bold text-[#4A154B] mb-1">Monto Abonado Recibido (Nequi / Efectivo / Transferencia)</label>
+            <input type="number" id="res-paid-input" value="141500" oninput="updateReservationBalance()"
+              class="w-full px-4 py-2.5 border-2 border-[#7D3C98] rounded-xl text-base font-extrabold text-[#2B1442] bg-white">
+            <div class="flex justify-between text-xs mt-2">
+              <span class="text-gray-600">Saldo Pendiente Contra Entrega:</span>
+              <strong id="res-balance-due" class="text-[#4A154B] font-extrabold">$141.500 COP</strong>
+            </div>
+          </div>
+
+          <button onclick="confirmReservationAndLockStock()" class="w-full bg-[#1E8449] hover:bg-emerald-700 text-white py-3.5 rounded-xl font-bold text-sm shadow-md cursor-pointer transition">
+            <i class="fa-solid fa-lock mr-1.5"></i> Confirmar Reserva y Bloquear Inventario
+          </button>
+        </div>
+
+        <!-- MOCKUP 6 (RF10): Vista Auxiliar de Montaje (Marco Smartphone Táctil) -->
+        <div class="lg:col-span-6 flex justify-center">
+          <div class="w-full max-w-md bg-gray-900 rounded-[2.5rem] p-3 shadow-2xl border-4 border-gray-800">
+            <div class="bg-[#FAF5FB] rounded-[2rem] overflow-hidden">
+              <!-- Barra superior móvil -->
+              <div class="bg-[#3B1448] text-white px-5 py-2 flex justify-between items-center text-[11px] font-semibold">
+                <span>9:41 AM • App Campo</span>
+                <span><i class="fa-solid fa-wifi mr-1"></i><i class="fa-solid fa-battery-full"></i></span>
+              </div>
+
+              <!-- Mini Header DecoCotiza -->
+              <div class="decocotiza-banner px-4 py-2.5 text-center">
+                <span class="font-script text-3xl text-[#4A154B] block leading-none">DecoCotiza</span>
+                <span class="text-[9px] font-extrabold tracking-widest text-[#4A154B]">VISTA AUXILIAR DE MONTAJE</span>
+              </div>
+
+              <div class="p-5">
+                <div class="flex items-center justify-between mb-2">
+                  <span class="bg-[#4A154B] text-white text-xs font-bold px-2.5 py-1 rounded-lg">Orden #OT-882 (15/11)</span>
+                  <span id="mobile-progress-text" class="text-xs font-extrabold text-[#7D3C98]">3 / 4 Listos</span>
+                </div>
+                <p class="text-xs text-gray-700 font-medium mb-3">
+                  <i class="fa-solid fa-location-dot text-[#7D3C98] mr-1"></i> Dirección: Calle 45 # 12-30, San Juan de Urabá
+                </p>
+
+                <!-- Barra de progreso táctil -->
+                <div class="w-full bg-purple-200 rounded-full h-2.5 mb-4">
+                  <div id="mobile-progress-bar" class="bg-[#1E8449] h-2.5 rounded-full transition-all duration-300" style="width: 75%"></div>
+                </div>
+
+                <p class="text-xs font-extrabold text-[#4A154B] uppercase mb-2">Checklist de Salida y Retorno:</p>
+                <div id="mobile-checklist-container" class="space-y-2.5 mb-5">
+                  <!-- Checkboxes táctiles grandes (Mejora OB-02) -->
+                </div>
+
+                <button onclick="completeFieldOrder()" class="w-full btn-primary-deco py-3.5 rounded-2xl text-sm font-bold shadow-md cursor-pointer">
+                  <i class="fa-solid fa-clipboard-check mr-1.5"></i> Registrar Entrega / Devolución
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- FOOTER INSTITUCIONAL -->
+  <footer class="bg-white border-t border-purple-200 py-4 px-4 text-center text-xs text-gray-600 mt-auto">
+    <p>
+      <strong class="text-[#4A154B]">DecoCotiza</strong> • Sistema de Cotización, Costeo e Inventario |
+      Proyecto Integrado I – IU Digital de Antioquia (2026) | Elisabeth Martínez & Jhon Mario Herrera
+    </p>
+  </footer>
+
+  <!-- ======================================================================= -->
+  <!-- MODAL 1: VISTA PREVIA EXPORTACIÓN COTIZACIÓN PDF (RF06)                 -->
+  <!-- ======================================================================= -->
+  <div id="pdf-modal" class="hidden fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl border border-purple-300">
+      <!-- Membrete Oficial DecoCotiza -->
+      <div class="decocotiza-banner p-5 text-center">
+        <h3 class="font-script text-4xl text-[#4A154B]">DecoCotiza</h3>
+        <p class="font-serif-title italic text-xs text-[#5B1D76]">Creamos momentos inolvidables ♡</p>
+        <p class="text-[11px] font-bold text-[#3B1448] mt-1">
+          WhatsApp: 300 123 4567 • Instagram: @DecoCotiza • San Juan de Urabá, Antioquia
+        </p>
+      </div>
+
+      <div class="p-6 text-sm">
+        <div class="flex justify-between items-start border-b border-purple-200 pb-3 mb-4">
+          <div>
+            <span class="text-xs font-bold text-[#7D3C98]">COTIZACIÓN FORMAL #COT-1042</span>
+            <h4 id="pdf-client-title" class="text-lg font-extrabold text-[#2B1442]">Cliente: Juan Pérez</h4>
+          </div>
+          <div class="text-right text-xs text-gray-600">
+            <p><strong>Fecha Evento:</strong> <span id="pdf-date">15/11/2026</span></p>
+            <p><strong>Validez oferta:</strong> 5 días calendario</p>
+          </div>
+        </div>
+
+        <div id="pdf-items-list" class="space-y-2 mb-4 text-xs"></div>
+
+        <div class="bg-[#FAF5FB] p-4 rounded-xl border border-purple-200 flex justify-between items-center">
+          <span class="text-xs text-gray-700">Nota: Se requiere anticipo del 50% para reservar fecha.</span>
+          <div class="text-right">
+            <span class="text-xs text-purple-800 block">Total Cotizado:</span>
+            <strong id="pdf-total-amount" class="text-xl font-extrabold text-[#4A154B]">$283.000 COP</strong>
+          </div>
+        </div>
+
+        <div class="mt-5 flex justify-end gap-2">
+          <button onclick="closeModal('pdf-modal')" class="px-4 py-2 rounded-xl border border-gray-300 text-xs font-bold cursor-pointer">Cerrar</button>
+          <button onclick="simulatePdfDownload()" class="btn-primary-deco px-5 py-2 rounded-xl text-xs font-bold cursor-pointer">
+            <i class="fa-solid fa-download mr-1"></i> Descargar PDF Membrete
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======================================================================= -->
+  <!-- MODAL 2: REGISTRAR NUEVO INSUMO EN CATÁLOGO (RF02 CRUD)                 -->
+  <!-- ======================================================================= -->
+  <div id="new-item-modal" class="hidden fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-purple-300">
+      <h3 class="font-serif-title text-xl font-bold text-[#4A154B] mb-4">+ Registrar Nuevo Insumo en Catálogo</h3>
+      <form onsubmit="handleAddNewItem(event)" class="space-y-3 text-xs">
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="font-bold text-[#4A154B] block mb-1">Código Único</label>
+            <input type="text" id="new-code" placeholder="Ej: MES-01" required class="w-full px-3 py-2 border border-purple-300 rounded-xl bg-[#FAF5FB]">
+          </div>
+          <div>
+            <label class="font-bold text-[#4A154B] block mb-1">Stock Disponible</label>
+            <input type="number" id="new-stock" value="2" min="1" required class="w-full px-3 py-2 border border-purple-300 rounded-xl bg-[#FAF5FB]">
+          </div>
+        </div>
+        <div>
+          <label class="font-bold text-[#4A154B] block mb-1">Nombre del Material</label>
+          <input type="text" id="new-name" placeholder="Ej: Mesa Cilíndrica Blanca" required class="w-full px-3 py-2 border border-purple-300 rounded-xl bg-[#FAF5FB]">
+        </div>
+        <div>
+          <label class="font-bold text-[#4A154B] block mb-1">Descripción / Medidas</label>
+          <input type="text" id="new-desc" placeholder="Ej: Altura 90 cm • Acabado acrílico" required class="w-full px-3 py-2 border border-purple-300 rounded-xl bg-[#FAF5FB]">
+        </div>
+        <div class="grid grid-cols-3 gap-2">
+          <div>
+            <label class="font-bold text-[#4A154B] block mb-1">Compra ($)</label>
+            <input type="number" id="new-purchase" value="150000" required class="w-full px-2.5 py-2 border border-purple-300 rounded-xl bg-[#FAF5FB]">
+          </div>
+          <div>
+            <label class="font-bold text-[#4A154B] block mb-1">Usos Meta</label>
+            <input type="number" id="new-uses" value="10" required class="w-full px-2.5 py-2 border border-purple-300 rounded-xl bg-[#FAF5FB]">
+          </div>
+          <div>
+            <label class="font-bold text-[#4A154B] block mb-1">Alquiler ($)</label>
+            <input type="number" id="new-price" value="25000" required class="w-full px-2.5 py-2 border border-purple-300 rounded-xl bg-[#FAF5FB]">
+          </div>
+        </div>
+        <div class="pt-3 flex justify-end gap-2">
+          <button type="button" onclick="closeModal('new-item-modal')" class="px-4 py-2 rounded-xl border border-gray-300 font-bold cursor-pointer">Cancelar</button>
+          <button type="submit" class="btn-primary-deco px-5 py-2 rounded-xl font-bold cursor-pointer">Guardar en Inventario</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ======================================================================= -->
+  <!-- MODAL 3: VALIDACIÓN ACTIVIDAD 3, MATRIZ RBAC Y REQUISITOS RF01-RF10     -->
+  <!-- ======================================================================= -->
+  <div id="validation-modal" class="hidden fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto p-6 shadow-2xl border border-purple-300">
+      <div class="flex items-center justify-between pb-3 border-b border-purple-200 mb-4">
+        <div>
+          <span class="text-xs font-extrabold text-[#7D3C98] uppercase">EVIDENCIA DE APRENDIZAJE 3 • SUSTENTACIÓN FINAL</span>
+          <h3 class="font-serif-title text-2xl font-bold text-[#2B1442]">Matriz RBAC, Validación y Cumplimiento RF01–RF10</h3>
+        </div>
+        <button onclick="closeModal('validation-modal')" class="w-8 h-8 rounded-full bg-purple-100 text-[#4A154B] font-bold cursor-pointer">✕</button>
+      </div>
+
+      <div class="space-y-5 text-xs">
+        <!-- Matriz RBAC -->
+        <div>
+          <h4 class="font-bold text-sm text-[#4A154B] mb-2">1. Matriz de Control de Acceso Basado en Roles (RBAC - RF01)</h4>
+          <div class="overflow-x-auto border border-purple-200 rounded-xl">
+            <table class="w-full text-left border-collapse">
+              <thead class="bg-[#4A154B] text-white">
+                <tr>
+                  <th class="p-2.5">Módulo / Caso de Uso</th>
+                  <th class="p-2.5">Administradora</th>
+                  <th class="p-2.5">Auxiliar Montaje</th>
+                  <th class="p-2.5">Cliente Final</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-purple-100">
+                <tr><td class="p-2 font-semibold">CU02: Catálogo e Inventario</td><td class="p-2 text-emerald-700 font-bold">✔ CRUD Completo</td><td class="p-2">Solo lectura</td><td class="p-2">Vista pública</td></tr>
+                <tr class="bg-[#FAF5FB]"><td class="p-2 font-semibold">CU03: Costos y Precio Piso</td><td class="p-2 text-emerald-700 font-bold">✔ Exclusivo</td><td class="p-2 text-red-600">✘ Sin acceso</td><td class="p-2 text-red-600">✘ Sin acceso</td></tr>
+                <tr><td class="p-2 font-semibold">CU04/06: Cotizador y PDF</td><td class="p-2 text-emerald-700 font-bold">✔ Cotizar & PDF</td><td class="p-2 text-red-600">✘ Sin acceso</td><td class="p-2 text-red-600">✘ Sin acceso</td></tr>
+                <tr class="bg-[#FAF5FB]"><td class="p-2 font-semibold">CU07/08: Reserva y Checklist</td><td class="p-2 text-emerald-700 font-bold">✔ Aprobar reservas</td><td class="p-2 text-emerald-700 font-bold">✔ Ejecutar checklist</td><td class="p-2 text-red-600">✘ Sin acceso</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Resumen de Mejoras Implementadas (Actividad 3) -->
+        <div>
+          <h4 class="font-bold text-sm text-[#4A154B] mb-2">2. Mejoras Implementadas tras Validación con Usuarios (Actividad 3)</h4>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+            <div class="p-3 rounded-xl bg-[#FAF5FB] border border-purple-200">
+              <strong class="text-[#4A154B] block">OB-01 / Mejora 1: Semáforo de Precio Piso (RF03)</strong>
+              Alerta roja automática si la tarifa propuesta está por debajo del desgaste del activo.
+            </div>
+            <div class="p-3 rounded-xl bg-[#FAF5FB] border border-purple-200">
+              <strong class="text-[#4A154B] block">OB-02 / Mejora 2: Checklist Táctil Mobile (RF10)</strong>
+              Tarjetas amplias para marcar entrega/devolución con una sola mano en campo.
+            </div>
+            <div class="p-3 rounded-xl bg-[#FAF5FB] border border-purple-200">
+              <strong class="text-[#4A154B] block">OB-03 / Mejora 3: Macro Paquete Completo ($160.000)</strong>
+              Carga promocional en un clic reduciendo el tiempo de cotización de 10 min a 30 seg.
+            </div>
+            <div class="p-3 rounded-xl bg-[#FAF5FB] border border-purple-200">
+              <strong class="text-[#4A154B] block">OB-05 / Mejora 4: Bloqueo de Stock por Fecha (RF07)</strong>
+              Insignia de indisponibilidad cuando una estructura ya está reservada en esa fecha.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- LÓGICA DE APLICACIÓN INTERACTIVA -->
+  <script>
+    // Catálogo real de materiales de Elisabeth Martínez Hernández (Etapa 2)
+    let inventory = [
+      {
+        code: 'ARC-01',
+        name: 'Arco Metálico Cuadrado',
+        desc: 'Medidas: 200 x 200 cm • Estructura dorada/blanca',
+        stock: 1,
+        purchaseCost: 280000,
+        estUses: 10,
+        maintCost: 2000,
+        price: 45000,
+        icon: 'fa-archway',
+        accent: '#4A154B'
+      },
+      {
+        code: 'ARC-02',
+        name: 'Fondo para Arco Cuadrado',
+        desc: 'Panel decorativo tensionado • Medidas 200 x 200 cm',
+        stock: 1,
+        purchaseCost: 110000,
+        estUses: 10,
+        maintCost: 2000,
+        price: 18000,
+        icon: 'fa-vector-square',
+        accent: '#7D3C98'
+      },
+      {
+        code: 'COR-01',
+        name: 'Cortinas Blancas',
+        desc: 'Juego de cortinas velo evento • Alta caída',
+        stock: 4,
+        purchaseCost: 116000,
+        estUses: 10,
+        maintCost: 3000,
+        price: 22000,
+        icon: 'fa-scroll',
+        accent: '#6C3483'
+      },
+      {
+        code: 'PED-01',
+        name: 'Pedestales Cuadrados',
+        desc: 'Bases exhibidoras para tortas y arreglos florales',
+        stock: 4,
+        purchaseCost: 80000,
+        estUses: 10,
+        maintCost: 1500,
+        price: 12000,
+        icon: 'fa-cube',
+        accent: '#5B1D76'
+      },
+      {
+        code: 'FLO-01',
+        name: 'Kit Flores + ALF-01 Alfombra + LUZ-01 Luces',
+        desc: 'Arreglos artificiales, alfombra felpa y luces cálidas LED',
+        stock: 3,
+        purchaseCost: 260000,
+        estUses: 10,
+        maintCost: 3000,
+        price: 42000,
+        icon: 'fa-spa',
+        accent: '#8E44AD'
+      }
+    ];
+
+    // Fechas con reservas bloqueadas para validar RF07 en vivo
+    let reservedDatesByCode = {
+      'ARC-01': ['2026-11-22'],
+      'ARC-02': ['2026-11-22']
+    };
+
+    // Estado de la cotización actual (precargada con el Caso Real $283.000 COP)
+    let quoteState = {
+      client: 'Juan Pérez',
+      date: '2026-11-15',
+      freight: 30000,
+      hours: 3,
+      isFullPackage: false,
+      items: [
+        { code: 'ARC-01', name: 'Arco Metálico Cuadrado', qty: 1, unitPrice: 45000 },
+        { code: 'ARC-02', name: 'Fondo para Arco Cuadrado', qty: 1, unitPrice: 18000 },
+        { code: 'PED-01', name: 'Pedestales Cuadrados', qty: 2, unitPrice: 12000 },
+        { code: 'FLO-01', name: 'Flores Artificiales + ALF-01 Alfombra + LUZ-01 Luces', qty: 1, unitPrice: 42000 }
+      ]
+    };
+
+    // Checklist móvil para Orden #OT-882
+    let mobileChecklist = [
+      { id: 1, label: '1x Arco Metálico Cuadrado (ARC-01)', checked: true },
+      { id: 2, label: '1x Fondo para Arco Cuadrado (ARC-02)', checked: true },
+      { id: 3, label: '2x Pedestales Cuadrados (PED-01)', checked: true },
+      { id: 4, label: '1x Kit Flores + Alfombra + Luces LED', checked: false }
+    ];
+
+    let currentRole = 'admin';
+    let currentScreen = 'w02';
+
+    // Inicialización al cargar la ventana
+    window.onload = function () {
+      renderCatalog();
+      populateCostSelector();
+      recalculateCostEngine();
+      recalculateQuote();
+      renderMobileChecklist();
+      switchRole('admin');
+      navigate('w02');
+    };
+
+    // Notificación visual elegante (sin alert())
+    function showToast(message, type = 'success') {
+      const container = document.getElementById('toast-container');
+      const toast = document.createElement('div');
+      const bgClass = type === 'error' ? 'bg-red-700' : (type === 'info' ? 'bg-[#4A154B]' : 'bg-[#1E8449]');
+      toast.className = `${bgClass} text-white px-4 py-3 rounded-xl shadow-lg text-xs font-bold flex items-center gap-2.5 fade-in`;
+      toast.innerHTML = `<i class="fa-solid ${type === 'error' ? 'fa-triangle-exclamation' : 'fa-circle-check'} text-base"></i><span>${message}</span>`;
+      container.appendChild(toast);
+      setTimeout(() => {
+        toast.remove();
+      }, 3600);
+    }
+
+    // Navegación entre pantallas W01 - W06
+    function navigate(screenId) {
+      currentScreen = screenId;
+      ['w01', 'w02', 'w03', 'w04', 'w05'].forEach(id => {
+        const sec = document.getElementById('view-' + id);
+        const btn = document.getElementById('nav-' + id);
+        if (sec) sec.classList.add('hidden');
+        if (btn) {
+          btn.classList.remove('tab-active');
+          btn.classList.add('tab-inactive');
+        }
+      });
+
+      const activeSec = document.getElementById('view-' + screenId);
+      const activeBtn = document.getElementById('nav-' + screenId);
+      if (activeSec) activeSec.classList.remove('hidden');
+      if (activeBtn) {
+        activeBtn.classList.remove('tab-inactive');
+        activeBtn.classList.add('tab-active');
+      }
+    }
+
+    // Control de Acceso Basado en Roles (RBAC - RF01)
+    function switchRole(role) {
+      currentRole = role;
+      const label = document.getElementById('current-role-label');
+      const btnAdmin = document.getElementById('role-btn-admin');
+      const btnAux = document.getElementById('role-btn-auxiliar');
+      const btnCli = document.getElementById('role-btn-cliente');
+
+      [btnAdmin, btnAux, btnCli].forEach(b => {
+        b.className = 'px-3 py-1.5 rounded-lg text-xs font-semibold bg-purple-950/70 text-purple-200 hover:bg-purple-800 border border-purple-700 cursor-pointer transition';
+      });
+
+      const adminEls = document.querySelectorAll('.admin-only');
+      const staffEls = document.querySelectorAll('.staff-only');
+
+      if (role === 'admin') {
+        label.textContent = 'Administradora (Elisabeth)';
+        btnAdmin.className = 'px-3 py-1.5 rounded-lg text-xs font-bold bg-[#7D3C98] text-white border border-purple-300 shadow-sm cursor-pointer transition';
+        adminEls.forEach(el => el.classList.remove('hidden'));
+        staffEls.forEach(el => el.classList.remove('hidden'));
+      } else if (role === 'auxiliar') {
+        label.textContent = 'Auxiliar de Montaje (Vista Campo)';
+        btnAux.className = 'px-3 py-1.5 rounded-lg text-xs font-bold bg-[#7D3C98] text-white border border-purple-300 shadow-sm cursor-pointer transition';
+        adminEls.forEach(el => el.classList.add('hidden'));
+        staffEls.forEach(el => el.classList.remove('hidden'));
+        navigate('w05');
+      } else {
+        label.textContent = 'Cliente Final (Catálogo Público)';
+        btnCli.className = 'px-3 py-1.5 rounded-lg text-xs font-bold bg-[#7D3C98] text-white border border-purple-300 shadow-sm cursor-pointer transition';
+        adminEls.forEach(el => el.classList.add('hidden'));
+        staffEls.forEach(el => el.classList.add('hidden'));
+        navigate('w02');
+      }
+      renderCatalog();
+    }
+
+    function handleLoginSubmit(e) {
+      e.preventDefault();
+      const email = document.getElementById('login-email').value.toLowerCase();
+      if (email.includes('aux')) {
+        switchRole('auxiliar');
+        showToast('Bienvenido Auxiliar de Montaje (Acceso móvil RBAC)');
+      } else {
+        switchRole('admin');
+        navigate('w02');
+        showToast('Bienvenida Elisabeth Martínez • Sesión Administradora');
+      }
+    }
+
+    function quickLogin(role) {
+      switchRole(role);
+      if (role === 'admin') navigate('w02');
+      showToast(`Perfil cambiado a: ${role.toUpperCase()}`);
+    }
+
+    // Renderizar Catálogo (W02)
+    function renderCatalog() {
+      const grid = document.getElementById('catalog-grid');
+      const selectedDate = document.getElementById('catalog-date-filter').value;
+      grid.innerHTML = '';
+
+      inventory.forEach(item => {
+        const isReservedOnDate = (reservedDatesByCode[item.code] || []).includes(selectedDate);
+        const availableStock = isReservedOnDate ? 0 : item.stock;
+
+        const card = document.createElement('div');
+        card.className = 'card-deco overflow-hidden flex flex-col justify-between transition hover:shadow-lg';
+        card.innerHTML = `
+          <div>
+            <div class="bg-gradient-to-r from-[#F4ECF7] to-[#FAF5FB] px-5 py-4 border-b border-purple-100 flex items-center justify-between">
+              <span class="bg-[#4A154B] text-white text-xs font-extrabold px-3 py-1 rounded-lg tracking-wide">${item.code}</span>
+              ${availableStock > 0
+                ? `<span class="bg-emerald-100 text-emerald-800 text-[11px] font-extrabold px-2.5 py-1 rounded-full">✔ Stock: ${availableStock} libre</span>`
+                : `<span class="bg-red-100 text-red-800 text-[11px] font-extrabold px-2.5 py-1 rounded-full">✘ RESERVADO EN FECHA</span>`
+              }
+            </div>
+            <div class="p-5">
+              <div class="flex items-center gap-3 mb-2">
+                <div class="w-10 h-10 rounded-xl bg-purple-100 text-[#4A154B] flex items-center justify-center shrink-0">
+                  <i class="fa-solid ${item.icon} text-lg"></i>
+                </div>
+                <h3 class="font-bold text-base text-[#2B1442] leading-snug">${item.name}</h3>
+              </div>
+              <p class="text-xs text-gray-600 mb-4">${item.desc}</p>
+
+              ${currentRole === 'admin' ? `
+                <div class="bg-[#FAF5FB] rounded-xl p-3 border border-purple-100 text-[11px] text-gray-700 space-y-1 mb-3">
+                  <div class="flex justify-between"><span>Precio Compra:</span><strong>$${item.purchaseCost.toLocaleString('es-CO')}</strong></div>
+                  <div class="flex justify-between"><span>Usos estimados:</span><strong>${item.estUses} eventos</strong></div>
+                  <div class="flex justify-between"><span>Costo Mantenimiento:</span><strong>$${item.maintCost.toLocaleString('es-CO')}</strong></div>
+                </div>
+              ` : ''}
+            </div>
+          </div>
+
+          <div class="px-5 py-3.5 bg-[#FAF5FB] border-t border-purple-100 flex items-center justify-between">
+            <div>
+              <span class="text-[11px] text-purple-800 font-semibold block">Alquiler / Evento:</span>
+              <span class="text-xl font-extrabold text-[#4A154B]">$${item.price.toLocaleString('es-CO')}</span>
+            </div>
+            ${currentRole === 'admin' ? `
+              <div class="flex gap-1.5">
+                <button onclick="openCostForCode('${item.code}')" title="Analizar Costo Piso" class="p-2.5 rounded-xl bg-white hover:bg-purple-100 text-[#4A154B] border border-purple-300 cursor-pointer">
+                  <i class="fa-solid fa-calculator"></i>
+                </button>
+                <button onclick="addItemToQuote('${item.code}')" ${availableStock === 0 ? 'disabled' : ''}
+                  class="${availableStock === 0 ? 'bg-gray-300 text-gray-500 cursor-not-allowed' : 'btn-primary-deco cursor-pointer'} px-3.5 py-2 rounded-xl text-xs font-bold">
+                  + Cotizar
+                </button>
+              </div>
+            ` : `
+              <span class="text-xs font-bold text-[#7D3C98]">${availableStock > 0 ? 'Disponible' : 'No disponible'}</span>
+            `}
+          </div>
+        `;
+        grid.appendChild(card);
+      });
+    }
+
+    // Cargar Paquete Completo ($160.000)
+    function loadFullPackageQuote() {
+      quoteState.isFullPackage = true;
+      quoteState.items = [
+        { code: 'PROMO-160', name: 'Paquete Completo Decoración (Todos los materiales del catálogo)', qty: 1, unitPrice: 160000 }
+      ];
+      recalculateQuote();
+      navigate('w04');
+      showToast('Paquete Completo ($160.000) cargado en el cotizador');
+    }
+
+    // Restaurar Caso Real ($283.000 COP)
+    function loadRealCaseDemo() {
+      quoteState.client = 'Juan Pérez';
+      quoteState.date = '2026-11-15';
+      quoteState.freight = 30000;
+      quoteState.hours = 3;
+      quoteState.isFullPackage = false;
+      quoteState.items = [
+        { code: 'ARC-01', name: 'Arco Metálico Cuadrado', qty: 1, unitPrice: 45000 },
+        { code: 'ARC-02', name: 'Fondo para Arco Cuadrado', qty: 1, unitPrice: 18000 },
+        { code: 'PED-01', name: 'Pedestales Cuadrados', qty: 2, unitPrice: 12000 },
+        { code: 'FLO-01', name: 'Flores Artificiales + ALF-01 Alfombra + LUZ-01 Luces', qty: 1, unitPrice: 42000 }
+      ];
+      document.getElementById('quote-client').value = quoteState.client;
+      document.getElementById('quote-date').value = quoteState.date;
+      document.getElementById('quote-zone').value = '30000';
+      document.getElementById('quote-hours').value = '3';
+      recalculateQuote();
+      navigate('w04');
+      showToast('Caso de Estudio Real ($283.000 COP) cargado');
+    }
+
+    function addItemToQuote(code) {
+      const item = inventory.find(i => i.code === code);
+      if (!item) return;
+      quoteState.isFullPackage = false;
+      const existing = quoteState.items.find(i => i.code === code);
+      if (existing) {
+        existing.qty += 1;
+      } else {
+        quoteState.items.push({ code: item.code, name: item.name, qty: 1, unitPrice: item.price });
+      }
+      recalculateQuote();
+      showToast(`${item.code} agregado a la cotización`);
+    }
+
+    function removeQuoteItem(index) {
+      quoteState.items.splice(index, 1);
+      recalculateQuote();
+    }
+
+    // Recalcular Cotizador Paramétrico (W04)
+    function recalculateQuote() {
+      quoteState.client = document.getElementById('quote-client').value || 'Cliente General';
+      quoteState.date = document.getElementById('quote-date').value || '2026-11-15';
+      quoteState.freight = parseInt(document.getElementById('quote-zone').value) || 0;
+      quoteState.hours = parseInt(document.getElementById('quote-hours').value) || 1;
+
+      const tbody = document.getElementById('quote-items-tbody');
+      tbody.innerHTML = '';
+
+      let subtotalMaterials = 0;
+      quoteState.items.forEach((item, idx) => {
+        const lineTotal = item.qty * item.unitPrice;
+        subtotalMaterials += lineTotal;
+        const isConflict = (reservedDatesByCode[item.code] || []).includes(quoteState.date);
+
+        const tr = document.createElement('tr');
+        tr.className = 'hover:bg-purple-50/60';
+        tr.innerHTML = `
+          <td class="py-3 px-4 font-semibold text-[#2B1442]">
+            <span class="text-xs font-extrabold text-[#7D3C98] mr-1.5">${item.code}</span> ${item.name}
+          </td>
+          <td class="py-3 px-4 text-center font-bold">${item.qty}</td>
+          <td class="py-3 px-4 text-right">$${item.unitPrice.toLocaleString('es-CO')}</td>
+          <td class="py-3 px-4 text-center">
+            ${isConflict
+              ? '<span class="bg-red-100 text-red-800 text-xs font-bold px-2.5 py-0.5 rounded-full">✘ Reservado</span>'
+              : '<span class="bg-emerald-100 text-emerald-800 text-xs font-bold px-2.5 py-0.5 rounded-full">✔ Disponible</span>'}
+          </td>
+          <td class="py-3 px-4 text-right font-extrabold text-[#4A154B]">$${lineTotal.toLocaleString('es-CO')}</td>
+          <td class="py-3 px-4 text-center">
+            <button onclick="removeQuoteItem(${idx})" class="text-red-600 hover:text-red-800 text-xs font-bold cursor-pointer">
+              <i class="fa-solid fa-trash"></i>
+            </button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+
+      const elisabethCost = quoteState.hours * 20000;
+      const helperCost = quoteState.hours * 18000;
+      const basicSupplies = 10000;
+      const operationsTotal = elisabethCost + helperCost + quoteState.freight + basicSupplies;
+      const grandTotal = subtotalMaterials + operationsTotal;
+      const deposit50 = Math.round(grandTotal * 0.5);
+
+      document.getElementById('lbl-hours-1').textContent = quoteState.hours;
+      document.getElementById('lbl-hours-2').textContent = quoteState.hours;
+      document.getElementById('summary-materials').textContent = `$${subtotalMaterials.toLocaleString('es-CO')}`;
+      document.getElementById('summary-elisabeth').textContent = `$${elisabethCost.toLocaleString('es-CO')}`;
+      document.getElementById('summary-helper').textContent = `$${helperCost.toLocaleString('es-CO')}`;
+      document.getElementById('summary-freight').textContent = `$${quoteState.freight.toLocaleString('es-CO')}`;
+      document.getElementById('summary-operations').textContent = `$${operationsTotal.toLocaleString('es-CO')}`;
+      document.getElementById('summary-grand-total').textContent = `$${grandTotal.toLocaleString('es-CO')}`;
+      document.getElementById('summary-deposit').textContent = `$${deposit50.toLocaleString('es-CO')}`;
+
+      const promoBadge = document.getElementById('quote-promo-badge');
+      if (quoteState.isFullPackage) promoBadge.classList.remove('hidden');
+      else promoBadge.classList.add('hidden');
+
+      // Sincronizar con Pantalla W05 (Reserva)
+      document.getElementById('res-client-name').textContent = `${quoteState.client} • ${quoteState.date}`;
+      document.getElementById('res-total-amount').textContent = `$${grandTotal.toLocaleString('es-CO')}`;
+      document.getElementById('res-min-deposit').textContent = `$${deposit50.toLocaleString('es-CO')}`;
+      document.getElementById('res-paid-input').value = deposit50;
+      updateReservationBalance();
+    }
+
+    // Motor de Costeo Determinista (W03 - RF03)
+    function populateCostSelector() {
+      const sel = document.getElementById('cost-item-selector');
+      sel.innerHTML = '';
+      inventory.forEach(item => {
+        const opt = document.createElement('option');
+        opt.value = item.code;
+        opt.textContent = `${item.code} - ${item.name}`;
+        sel.appendChild(opt);
+      });
+    }
+
+    function openCostForCode(code) {
+      document.getElementById('cost-item-selector').value = code;
+      selectCostItem(code);
+      navigate('w03');
+    }
+
+    function selectCostItem(code) {
+      const item = inventory.find(i => i.code === code);
+      if (!item) return;
+      document.getElementById('cost-item-title').textContent = `${item.code} • ${item.name}`;
+      document.getElementById('cost-purchase').value = item.purchaseCost;
+      document.getElementById('cost-uses').value = item.estUses;
+      document.getElementById('cost-maint').value = item.maintCost;
+      document.getElementById('cost-proposed').value = item.price;
+      recalculateCostEngine();
+    }
+
+    function recalculateCostEngine() {
+      const purchase = parseFloat(document.getElementById('cost-purchase').value) || 0;
+      const uses = parseFloat(document.getElementById('cost-uses').value) || 1;
+      const maint = parseFloat(document.getElementById('cost-maint').value) || 0;
+      const proposed = parseFloat(document.getElementById('cost-proposed').value) || 0;
+
+      const wearCost = Math.round(purchase / uses);
+      const breakEven = wearCost + maint;
+      // Precio piso con margen sostenible (~50% sobre desgaste base, exacto $45.000 para ARC-01)
+      const floorPrice = Math.round((breakEven * 1.5) / 1000) * 1000;
+
+      document.getElementById('calc-wear-cost').textContent = `$${wearCost.toLocaleString('es-CO')}`;
+      document.getElementById('calc-floor-price').textContent = `$${floorPrice.toLocaleString('es-CO')}`;
+      document.getElementById('cost-recovery-text').textContent =
+        `Recuperación total de $${purchase.toLocaleString('es-CO')} en ${uses} alquileres de la pieza.`;
+
+      const alertBox = document.getElementById('rentability-alert-box');
+      const alertIcon = document.getElementById('rentability-icon');
+      const alertTitle = document.getElementById('rentability-title');
+      const alertDesc = document.getElementById('rentability-desc');
+
+      if (proposed < floorPrice) {
+        alertBox.className = 'card-deco p-5 border-2 border-red-500 bg-red-50';
+        alertIcon.className = 'fa-solid fa-triangle-exclamation text-2xl text-red-600 mt-0.5';
+        alertTitle.className = 'text-sm font-extrabold text-red-900';
+        alertTitle.textContent = 'ALERTA: TARIFA POR DEBAJO DEL PRECIO PISO';
+        alertDesc.className = 'text-xs text-red-800 mt-1';
+        alertDesc.textContent = `Riesgo de pérdida operativa. La tarifa ($${proposed.toLocaleString('es-CO')}) es inferior al precio mínimo rentable ($${floorPrice.toLocaleString('es-CO')}).`;
+      } else {
+        const netMargin = proposed - breakEven;
+        alertBox.className = 'card-deco p-5 border-2 border-emerald-500 bg-emerald-50';
+        alertIcon.className = 'fa-solid fa-circle-check text-2xl text-emerald-600 mt-0.5';
+        alertTitle.className = 'text-sm font-extrabold text-emerald-900';
+        alertTitle.textContent = 'TARIFA RENTABLE Y SEGURA';
+        alertDesc.className = 'text-xs text-emerald-800 mt-1';
+        alertDesc.textContent = `La tarifa propuesta ($${proposed.toLocaleString('es-CO')}) cubre el desgaste ($${wearCost.toLocaleString('es-CO')}) y deja margen neto de $${netMargin.toLocaleString('es-CO')}.`;
+      }
+    }
+
+    function saveCostConfiguration() {
+      const code = document.getElementById('cost-item-selector').value;
+      const item = inventory.find(i => i.code === code);
+      if (item) {
+        item.purchaseCost = parseFloat(document.getElementById('cost-purchase').value) || item.purchaseCost;
+        item.estUses = parseFloat(document.getElementById('cost-uses').value) || item.estUses;
+        item.maintCost = parseFloat(document.getElementById('cost-maint').value) || item.maintCost;
+        item.price = parseFloat(document.getElementById('cost-proposed').value) || item.price;
+        renderCatalog();
+        showToast(`Estructura financiera actualizada para ${item.code}`);
+      }
+    }
+
+    // Exportar Cotización PDF (Modal RF06)
+    function openPdfPreviewModal() {
+      document.getElementById('pdf-client-title').textContent = `Cliente: ${quoteState.client}`;
+      document.getElementById('pdf-date').textContent = quoteState.date;
+      document.getElementById('pdf-total-amount').textContent = document.getElementById('summary-grand-total').textContent;
+
+      const list = document.getElementById('pdf-items-list');
+      list.innerHTML = quoteState.items.map(i => `
+        <div class="flex justify-between py-1.5 border-b border-purple-100">
+          <span><strong>${i.code}</strong> - ${i.name} (x${i.qty})</span>
+          <strong>$${(i.qty * i.unitPrice).toLocaleString('es-CO')}</strong>
+        </div>
+      `).join('') + `
+        <div class="flex justify-between py-1.5 text-purple-900">
+          <span>Mano de Obra (${quoteState.hours}h) + Transporte Zona + Insumos</span>
+          <strong>${document.getElementById('summary-operations').textContent}</strong>
+        </div>
+      `;
+      document.getElementById('pdf-modal').classList.remove('hidden');
+    }
+
+    function simulatePdfDownload() {
+      closeModal('pdf-modal');
+      showToast('Cotización PDF generada con membrete oficial DecoCotiza');
+    }
+
+    // Reserva y Checklist Mobile (W05 / W06)
+    function proceedToReservation() {
+      navigate('w05');
+      showToast('Cotización #COT-1042 lista para confirmación de anticipo 50%');
+    }
+
+    function updateReservationBalance() {
+      const totalStr = document.getElementById('res-total-amount').textContent.replace(/[^0-9]/g, '');
+      const total = parseInt(totalStr) || 283000;
+      const paid = parseInt(document.getElementById('res-paid-input').value) || 0;
+      const balance = Math.max(0, total - paid);
+      document.getElementById('res-balance-due').textContent = `$${balance.toLocaleString('es-CO')} COP`;
+    }
+
+    function confirmReservationAndLockStock() {
+      const minStr = document.getElementById('res-min-deposit').textContent.replace(/[^0-9]/g, '');
+      const minDeposit = parseInt(minStr) || 141500;
+      const paid = parseInt(document.getElementById('res-paid-input').value) || 0;
+
+      if (paid < minDeposit) {
+        showToast(`El anticipo mínimo obligatorio es del 50% ($${minDeposit.toLocaleString('es-CO')})`, 'error');
+        return;
+      }
+
+      // Bloquear stock en la fecha del evento (RF07 / RF08)
+      quoteState.items.forEach(item => {
+        if (!reservedDatesByCode[item.code]) reservedDatesByCode[item.code] = [];
+        if (!reservedDatesByCode[item.code].includes(quoteState.date)) {
+          reservedDatesByCode[item.code].push(quoteState.date);
+        }
+      });
+
+      const pill = document.getElementById('reservation-status-pill');
+      pill.className = 'px-3 py-1 rounded-full text-xs font-extrabold bg-emerald-100 text-emerald-800';
+      pill.textContent = '✔ RESERVA CONFIRMADA';
+      renderCatalog();
+      showToast('Reserva confirmada y stock bloqueado en el calendario');
+    }
+
+    function renderMobileChecklist() {
+      const container = document.getElementById('mobile-checklist-container');
+      container.innerHTML = '';
+      let checkedCount = 0;
+
+      mobileChecklist.forEach(task => {
+        if (task.checked) checkedCount++;
+        const row = document.createElement('label');
+        row.className = `flex items-center gap-3 p-3.5 rounded-2xl border-2 cursor-pointer transition ${
+          task.checked ? 'bg-emerald-50 border-emerald-400 text-emerald-950' : 'bg-white border-purple-200 text-[#2B1442]'
+        }`;
+        row.innerHTML = `
+          <input type="checkbox" ${task.checked ? 'checked' : ''} onchange="toggleChecklistTask(${task.id})"
+            class="w-5 h-5 accent-[#1E8449] rounded cursor-pointer">
+          <span class="text-xs font-bold flex-1">${task.label}</span>
+        `;
+        container.appendChild(row);
+      });
+
+      const pct = Math.round((checkedCount / mobileChecklist.length) * 100);
+      document.getElementById('mobile-progress-text').textContent = `${checkedCount} / ${mobileChecklist.length} Listos`;
+      document.getElementById('mobile-progress-bar').style.width = `${pct}%`;
+    }
+
+    function toggleChecklistTask(id) {
+      const item = mobileChecklist.find(t => t.id === id);
+      if (item) {
+        item.checked = !item.checked;
+        renderMobileChecklist();
+      }
+    }
+
+    function completeFieldOrder() {
+      mobileChecklist.forEach(t => t.checked = true);
+      renderMobileChecklist();
+      showToast('Entrega y devolución verificada en Orden #OT-882');
+    }
+
+    // Gestión de Modales
+    function openNewItemModal() {
+      document.getElementById('new-item-modal').classList.remove('hidden');
+    }
+    function openValidationModal() {
+      document.getElementById('validation-modal').classList.remove('hidden');
+    }
+    function closeModal(id) {
+      document.getElementById(id).classList.add('hidden');
+    }
+
+    function handleAddNewItem(e) {
+      e.preventDefault();
+      const newItem = {
+        code: document.getElementById('new-code').value.toUpperCase(),
+        name: document.getElementById('new-name').value,
+        desc: document.getElementById('new-desc').value,
+        stock: parseInt(document.getElementById('new-stock').value) || 1,
+        purchaseCost: parseInt(document.getElementById('new-purchase').value) || 100000,
+        estUses: parseInt(document.getElementById('new-uses').value) || 10,
+        maintCost: 2000,
+        price: parseInt(document.getElementById('new-price').value) || 25000,
+        icon: 'fa-box-open',
+        accent: '#4A154B'
+      };
+      inventory.push(newItem);
+      renderCatalog();
+      populateCostSelector();
+      closeModal('new-item-modal');
+      navigate('w02');
+      showToast(`Insumo ${newItem.code} agregado al catálogo`);
+    }
+  </script>
+</body>
+</html>
